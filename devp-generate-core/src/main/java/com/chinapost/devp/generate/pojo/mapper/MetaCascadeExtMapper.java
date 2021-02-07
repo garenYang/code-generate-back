@@ -1,0 +1,55 @@
+package com.chinapost.devp.generate.pojo.mapper;
+
+import com.chinapost.devp.generate.pojo.dto.MetaCascadeExtAddDTO;
+import com.chinapost.devp.generate.pojo.dto.MetaCascadeExtUpdateDTO;
+import com.chinapost.devp.generate.pojo.po.MetaCascadeExtPO;
+import com.chinapost.devp.generate.pojo.vo.MetaCascadeExtShowVO;
+import org.mapstruct.*;
+import org.mapstruct.factory.Mappers;
+
+/**
+ * 外键级联扩展映射
+ *
+ * @author: cpit
+ * @date: 2020/5/28
+ */
+@Mapper
+public interface MetaCascadeExtMapper {
+
+    MetaCascadeExtMapper INSTANCE = Mappers.getMapper(MetaCascadeExtMapper.class);
+
+    /**
+     * addDTO映射po
+     *
+     * @param addDTO
+     * @return
+     */
+    MetaCascadeExtPO fromAddDTO(MetaCascadeExtAddDTO addDTO);
+
+    /**
+     * 将updateDTO中的值设置到po
+     *
+     * @param po
+     * @param updateDTO
+     */
+    void setPO(@MappingTarget MetaCascadeExtPO po, MetaCascadeExtUpdateDTO updateDTO);
+
+    /**
+     * po映射showVO
+     *
+     * @param po
+     * @return
+     */
+    MetaCascadeExtShowVO toShowVO(MetaCascadeExtPO po);
+
+    @BeanMapping(ignoreByDefault = true)
+    @Mappings({
+            @Mapping(target = "alias"),
+            @Mapping(target = "list"),
+            @Mapping(target = "show"),
+            @Mapping(target = "query"),
+    })
+    MetaCascadeExtPO copy(MetaCascadeExtPO cascadeExtFromJson);
+
+
+}

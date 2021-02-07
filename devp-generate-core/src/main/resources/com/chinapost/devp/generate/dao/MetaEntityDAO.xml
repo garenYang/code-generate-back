@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinapost.devp.generate.dao.MetaEntityDAO">
+
+    <select id="findById" resultType="MetaEntityPO">
+        select * from meta_entity
+        where deleted=0
+        and entity_id = #{entityId,jdbcType=INTEGER}
+    </select>
+
+    <select id="exist" resultType="boolean">
+        select count(*) from meta_entity
+        where deleted=0
+        and entity_id = #{entityId,jdbcType=INTEGER}
+    </select>
+
+    <insert id="_save" useGeneratedKeys="true" keyProperty="entityId" parameterType="MetaEntityPO">
+        insert into meta_entity (
+          entity_id,
+          project_id,
+          `schema_name`,
+          class_name,
+          `table_name`,
+          title,
+          module,
+          `desc`,
+          page_sign,
+          feature,
+          labels,
+          created_time,
+          created_by,
+          operated_time,
+          operated_by,
+          deleted,
+          version)
+        values (
+          #{entityId,jdbcType=INTEGER},
+          #{projectId,jdbcType=INTEGER},
+          #{schemaName,jdbcType=VARCHAR},
+          #{className,jdbcType=VARCHAR},
+          #{tableName,jdbcType=VARCHAR},
+          #{title,jdbcType=VARCHAR},
+          #{module,jdbcType=VARCHAR},
+          #{desc,jdbcType=VARCHAR},
+          #{pageSign,jdbcType=BOOLEAN},
+          #{feature,jdbcType=VARCHAR},
+          #{labels,jdbcType=VARCHAR},
+          #{createdTime,jdbcType=TIMESTAMP},
+          #{createdBy,jdbcType=VARCHAR},
+          #{operatedTime,jdbcType=TIMESTAMP},
+          #{operatedBy,jdbcType=VARCHAR},
+          #{deleted,jdbcType=SMALLINT},
+          #{version,jdbcType=INTEGER})
+    </insert>
+
+    <update id="_update" parameterType="MetaEntityPO">
+        update meta_entity
+        set project_id = #{projectId,jdbcType=INTEGER},
+          `schema_name` = #{schemaName,jdbcType=VARCHAR},
+          class_name = #{className,jdbcType=VARCHAR},
+          `table_name` = #{tableName,jdbcType=VARCHAR},
+          title = #{title,jdbcType=VARCHAR},
+          module = #{module,jdbcType=VARCHAR},
+          `desc` = #{desc,jdbcType=VARCHAR},
+          page_sign = #{pageSign,jdbcType=BOOLEAN},
+          feature = #{feature,jdbcType=VARCHAR},
+          labels = #{labels,jdbcType=VARCHAR},
+          operated_time = #{operatedTime,jdbcType=TIMESTAMP},
+          operated_by = #{operatedBy,jdbcType=VARCHAR},
+          version = #{version,jdbcType=INTEGER}
+        where entity_id = #{entityId,jdbcType=INTEGER}
+        and version=#{version,jdbcType=INTEGER}
+        and deleted=0
+    </update>
+
+    <delete id="delete">
+        update meta_entity set
+        deleted=1
+        where entity_id = #{entityId,jdbcType=INTEGER}
+        and deleted=0
+    </delete>
+
+    <select id="findCountByQuery" parameterType="MetaEntityQO" resultType="int">
+        select count(1) from meta_entity t
+        where t.deleted=0
+        and t.project_id = #{projectId,jdbcType=INTEGER}
+    </select>
+
+    <select id="findListByQuery" parameterType="MetaEntityQO" resultType="MetaEntityListVO">
+        select * from meta_entity t
+        where t.deleted=0
+        and t.project_id = #{projectId,jdbcType=INTEGER}
+        order by
+        <if test="moduleSortSign != null and moduleSortSign!=0">
+            t.module <if test="moduleSortSign > 0">asc</if><if test="moduleSortSign &lt; 0">desc</if>,
+        </if>
+            t.created_time
+    </select>
+
+    <select id="findIdsByProject" resultType="int">
+        select entity_id from meta_entity
+        where deleted=0
+        and project_id = #{projectId,jdbcType=INTEGER}
+        order by entity_id
+    </select>
+
+
+    <select id="classNameNotUnique" resultType="boolean">
+        select count(1) from meta_entity t
+        <where>
+            and t.deleted=0
+            and t.project_id = #{projectId}
+            and t.class_name = #{className}
+            <if test="entityId != null  ">
+                and t.entity_id != #{entityId}
+            </if>
+        </where>
+    </select>
+    <select id="tableNameNotUnique" resultType="boolean">
+        select count(1) from meta_entity t
+        <where>
+            and t.deleted=0
+            and t.project_id = #{projectId}
+            and t.table_name = #{tableName}
+            <if test="entityId != null  ">
+                and t.entity_id != #{entityId}
+            </if>
+        </where>
+    </select>
+
+    <select id="findMtmEntityList" resultType="MetaMtmEntityListVO">
+        select
+            m.mtm_id,
+            (
+                select count(1)
+                from meta_mtm_cascade_ext c
+                where c.mtm_id=m.mtm_id
+                    and c.entity_id = t.entity_id
+                    and c.cascade_entity_id = t2.entity_id
+                    and c.deleted=0
+            ) as cascade_field_num,
+            t2.*
+        from meta_entity t
+        join meta_mtm m
+            on t.entity_id = m.entity_id1
+        join meta_entity t2
+            on t2.entity_id = m.entity_id2
+        where t.deleted=0
+            and m.deleted = 0
+            and t2.deleted = 0
+            and t.entity_id = #{entityId,jdbcType=INTEGER}
+            and m.hold_refer1 = #{hold,jdbcType=BOOLEAN}
+
+        union all
+
+        select
+            m.mtm_id,
+            (
+                select count(1)
+                from meta_mtm_cascade_ext c
+                where c.mtm_id=m.mtm_id
+                    and c.entity_id = t.entity_id
+                    and c.cascade_entity_id = t2.entity_id
+                    and c.deleted=0
+            ) as cascade_field_num,
+            t2.*
+        from meta_entity t
+        join meta_mtm m
+            on t.entity_id = m.entity_id2
+        join meta_entity t2
+            on t2.entity_id = m.entity_id1
+        where t.deleted=0
+            and m.deleted = 0
+            and t2.deleted = 0
+            and t.entity_id = #{entityId,jdbcType=INTEGER}
+            and m.hold_refer2 = #{hold,jdbcType=BOOLEAN}
+    </select>
+</mapper>

@@ -1,0 +1,469 @@
+package com.chinapost.devp.generate.pojo.po;
+
+import com.chinapost.devp.generate.pojo.dto.LabelDTO;
+import com.chinapost.devp.generate.pojo.po.chart.MetaChartPO;
+import com.chinapost.devp.generate.pojo.po.chart.MetaDashboardPO;
+import com.chinapost.devp.generate.util.LabelsUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+
+import static java.util.Arrays.stream;
+
+/**
+ * 项目
+ *
+ * @author: cpit
+ * @date: 2020/5/24
+ */
+
+public class MetaProjectPO extends BasePO {
+
+    /**
+     * 工程ID
+     */
+    private Integer projectId;
+    /**
+     * 项目ID
+     */
+    private String projectGroupId;
+    /**
+     * 包名
+     */
+    private String packageName;
+    /**
+     * 项目名
+     */
+    private String projectName;
+    /**
+     * 项目描述
+     */
+    private String projectDesc;
+    /**
+     * 项目简称
+     */
+    private String projectShortName;
+    /**
+     * 项目开始时间
+     */
+    private Date startDate;
+    /**
+     * 项目结束时间
+     */
+    private Date endDate;
+    /**
+     * maven的groupId
+     */
+    private String groupId;
+    /**
+     * 代码注释中的作者
+     */
+    private String author;
+    /**
+     * 所属项目组
+     */
+    private Integer teamId;
+    /**
+     * 第1个模板id
+     */
+    @JsonIgnore
+    private Integer templateId;
+    /**
+     * 第2个模板id
+     */
+    @JsonIgnore
+    private Integer templateId2;
+    /**
+     * 第3个模板id
+     */
+    @JsonIgnore
+    private Integer templateId3;
+    /**
+     * 是否开启Git远程仓库功能
+     */
+    @JsonIgnore
+    private Boolean remote;
+    /**
+     * 远程仓库地址1
+     * 对应第1个模板
+     */
+    @JsonIgnore
+    private String remoteUrl;
+    /**
+     * 远程仓库地址2
+     * 对应第2个模板
+     */
+    @JsonIgnore
+    private String remoteUrl2;
+    /**
+     * 远程仓库地址3
+     * 对应第3个模板
+     */
+    @JsonIgnore
+    private String remoteUrl3;
+    /**
+     * 远程仓库用户名
+     */
+    @JsonIgnore
+    private String username;
+    /**
+     * 远程仓库密码
+     * 支持accessToken
+     */
+    @JsonIgnore
+    private String password;
+    /**
+     * 项目内部版本号
+     */
+    @JsonIgnore
+    private Integer projectVersion;
+    /**
+     * 项目特性
+     */
+    private String feature;
+    /**
+     * 标签
+     */
+    private String labels;
+    /**
+     * 项目下的所有实体
+     */
+    @JsonIgnore
+    private transient List<MetaEntityPO> entities;
+    /**
+     * 项目下的所有常量
+     */
+    @JsonIgnore
+    private transient List<MetaConstPO> consts;
+    /**
+     * 项目下的所有多对多
+     */
+    @JsonIgnore
+    private transient List<MetaManyToManyPO> mtms;
+    /**
+     * 项目下的所有图表
+     */
+    @JsonIgnore
+    private transient List<MetaChartPO> charts;
+    /**
+     * 项目下的所有看板
+     */
+    @JsonIgnore
+    private transient List<MetaDashboardPO> dashboards;
+    /**
+     * 项目下的所有标签
+     */
+    @JsonIgnore
+    private transient List<LabelDTO> labelList;
+
+    /**
+     * 根据序号获取远程git仓库地址
+     *
+     * @param templateId
+     * @return
+     */
+    public String getRemoteUrlByTemplateId(Integer templateId) {
+        String url = null;
+        if (Objects.equals(templateId, this.templateId)) {
+            url = remoteUrl;
+        } else if (Objects.equals(templateId, this.templateId2)) {
+            url = remoteUrl2;
+        } else if (Objects.equals(templateId, this.templateId3)) {
+            url = remoteUrl3;
+        }
+        return url;
+    }
+
+    /**
+     * 将横线分割的字符串去横线化
+     * 如：gen-meta -> genMeta
+     *
+     * @return
+     */
+    public String fetchNormalProjectName() {
+        if (projectName == null) {
+            return null;
+        }
+        String[] split = projectName.split("-|_");
+        return stream(split)
+                .reduce((s, s2) -> s.concat(StringUtils.capitalize(s2)))
+                .get();
+    }
+
+    /**
+     * 获取common包名
+     * packageName最后的.xxx改为.common
+     *
+     * @return
+     */
+    public String fetchCommonPackageName() {
+        if (StringUtils.isBlank(packageName)) {
+            return null;
+        }
+        int index = packageName.lastIndexOf(".");
+        if (index > -1) {
+            return packageName.substring(0, index) + ".common";
+        }
+        return "common";
+    }
+
+    /**
+     * 判断实体是否包含标签
+     *
+     * @param key
+     * @return
+     */
+    public boolean hasLabel(String key) {
+        return LabelsUtil.findLabel(this.labelList, key) != null;
+    }
+
+    /**
+     * 获取标签值
+     *
+     * @param key
+     * @return 标签值
+     */
+    public String getLabelValue(String key) {
+        LabelDTO label = LabelsUtil.findLabel(this.labelList, key);
+        if (label == null) {
+            return null;
+        }
+        return label.getValue();
+    }
+
+    public List<MetaManyToManyPO> getMtms() {
+        return mtms;
+    }
+
+    public void setMtms(List<MetaManyToManyPO> mtms) {
+        this.mtms = mtms;
+    }
+
+    public List<MetaConstPO> getConsts() {
+        return consts;
+    }
+
+    public void setConsts(List<MetaConstPO> consts) {
+        this.consts = consts;
+    }
+
+    public List<MetaEntityPO> getEntities() {
+        return entities;
+    }
+
+    public void setEntities(List<MetaEntityPO> entities) {
+        this.entities = entities;
+    }
+
+    public List<MetaChartPO> getCharts() {
+        return charts;
+    }
+
+    public void setCharts(List<MetaChartPO> charts) {
+        this.charts = charts;
+    }
+
+    public List<MetaDashboardPO> getDashboards() {
+        return dashboards;
+    }
+
+    public void setDashboards(List<MetaDashboardPO> dashboards) {
+        this.dashboards = dashboards;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    public Integer getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Integer projectId) {
+        this.projectId = projectId;
+    }
+
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
+
+    public Boolean getRemote() {
+        return remote;
+    }
+
+    public void setRemote(Boolean remote) {
+        this.remote = remote;
+    }
+
+    public String getRemoteUrl() {
+        return remoteUrl;
+    }
+
+    public void setRemoteUrl(String remoteUrl) {
+        this.remoteUrl = remoteUrl;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Integer getProjectVersion() {
+        return projectVersion;
+    }
+
+    public void setProjectVersion(Integer projectVersion) {
+        this.projectVersion = projectVersion;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
+    }
+
+    public String getProjectDesc() {
+        return projectDesc;
+    }
+
+    public void setProjectDesc(String projectDesc) {
+        this.projectDesc = projectDesc;
+    }
+
+    public String getFeature() {
+        return feature;
+    }
+
+    public void setFeature(String feature) {
+        this.feature = feature;
+    }
+
+    public String getLabels() {
+        return labels;
+    }
+
+    public void setLabels(String labels) {
+        this.labels = labels;
+    }
+
+    public Integer getTemplateId() {
+        return templateId;
+    }
+
+    public void setTemplateId(Integer templateId) {
+        this.templateId = templateId;
+    }
+
+    public Integer getTemplateId2() {
+        return templateId2;
+    }
+
+    public void setTemplateId2(Integer templateId2) {
+        this.templateId2 = templateId2;
+    }
+
+    public Integer getTemplateId3() {
+        return templateId3;
+    }
+
+    public void setTemplateId3(Integer templateId3) {
+        this.templateId3 = templateId3;
+    }
+
+    public String getRemoteUrl2() {
+        return remoteUrl2;
+    }
+
+    public void setRemoteUrl2(String remoteUrl2) {
+        this.remoteUrl2 = remoteUrl2;
+    }
+
+    public String getRemoteUrl3() {
+        return remoteUrl3;
+    }
+
+    public void setRemoteUrl3(String remoteUrl3) {
+        this.remoteUrl3 = remoteUrl3;
+    }
+
+    public List<LabelDTO> getLabelList() {
+        return labelList;
+    }
+
+    public void setLabelList(List<LabelDTO> labelList) {
+        this.labelList = labelList;
+    }
+
+    public Integer getTeamId() {
+        return teamId;
+    }
+
+    public void setTeamId(Integer teamId) {
+        this.teamId = teamId;
+    }
+
+    public String getProjectShortName() {
+        return projectShortName;
+    }
+
+    public void setProjectShortName(String projectShortName) {
+        this.projectShortName = projectShortName;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    public Date getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
+    }
+
+    public String getProjectGroupId() {
+        return projectGroupId;
+    }
+
+    public void setProjectGroupId(String projectGroupId) {
+        this.projectGroupId = projectGroupId;
+    }
+}

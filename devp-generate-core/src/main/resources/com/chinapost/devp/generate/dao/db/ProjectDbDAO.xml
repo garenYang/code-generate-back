@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinapost.devp.generate.dao.db.ProjectDbDAO">
+
+
+    <sql id="projectDbColumns">
+        ${alias}.id,
+        ${alias}.project_id as projectId,
+        ${alias}.db_connect_name as dbConnectName,
+        ${alias}.dialect_name as dialectName,
+        ${alias}.db_host as dbHost,
+        ${alias}.db_port as dbPort,
+        ${alias}.db_name as dbName,
+        ${alias}.db_user as dbUser,
+        ${alias}.db_password as dbPassword,
+        ${alias}.is_save_password as isSavePassword,
+        ${alias}.order_no as orderNo,
+        ${alias}.created_time as createdTime,
+        ${alias}.created_by as createdBy,
+        ${alias}.operated_time as operatedTime,
+        ${alias}.operated_by as operatedBy,
+        ${alias}.version,
+        ${alias}.deleted
+    </sql>
+
+
+    <select id="findById" resultType="ProjectDbPO">
+        select
+            <include refid="projectDbColumns"><property name="alias" value="t"/></include>
+        from project_db t
+        <where>
+            and t.deleted=0
+            and t.id = #{arg0}
+        </where>
+        limit 1
+    </select>
+
+    <select id="exist" resultType="boolean">
+        select count(1) from project_db
+        <where>
+            and deleted=0
+            and id = #{arg0}
+        </where>
+    </select>
+
+    <insert id="_save" useGeneratedKeys="true" keyProperty="id" parameterType="ProjectDbPO">
+        insert into project_db(
+        id,
+        project_id,
+        db_connect_name,
+        dialect_name,
+        db_host,
+        db_port,
+        db_name,
+        db_user,
+        db_password,
+        is_save_password,
+        order_no,
+        created_time,
+        created_by,
+        operated_time,
+        operated_by,
+        version,
+        deleted
+        ) VALUES (
+        #{id,jdbcType=BIGINT},
+        #{projectId,jdbcType=INTEGER},
+        #{dbConnectName,jdbcType=VARCHAR},
+        #{dialectName,jdbcType=VARCHAR},
+        #{dbHost,jdbcType=VARCHAR},
+        #{dbPort,jdbcType=INTEGER},
+        #{dbName,jdbcType=VARCHAR},
+        #{dbUser,jdbcType=VARCHAR},
+        #{dbPassword,jdbcType=VARCHAR},
+        #{isSavePassword,jdbcType=INTEGER},
+        #{orderNo,jdbcType=INTEGER},
+        #{createdTime,jdbcType=TIMESTAMP},
+        #{createdBy,jdbcType=VARCHAR},
+        #{operatedTime,jdbcType=TIMESTAMP},
+        #{operatedBy,jdbcType=VARCHAR},
+        #{version,jdbcType=INTEGER},
+        #{deleted,jdbcType=BOOLEAN}
+        )
+    </insert>
+
+
+    <update id="_update" parameterType="ProjectDbPO">
+        update project_db set
+            project_id=#{projectId,jdbcType=INTEGER},
+            db_connect_name=#{dbConnectName,jdbcType=VARCHAR},
+            dialect_name=#{dialectName,jdbcType=VARCHAR},
+            db_host=#{dbHost,jdbcType=VARCHAR},
+            db_port=#{dbPort,jdbcType=INTEGER},
+            db_name=#{dbName,jdbcType=VARCHAR},
+            db_user=#{dbUser,jdbcType=VARCHAR},
+            db_password=#{dbPassword,jdbcType=VARCHAR},
+            is_save_password=#{isSavePassword,jdbcType=INTEGER},
+            order_no=#{orderNo,jdbcType=INTEGER},
+            operated_time=#{operatedTime,jdbcType=TIMESTAMP},
+            operated_by=#{operatedBy,jdbcType=VARCHAR},
+            version = version+1,
+            deleted=#{deleted,jdbcType=BOOLEAN}
+        where id=#{id,jdbcType=BIGINT}
+        and version=#{version,jdbcType=INTEGER}
+        and deleted=0
+    </update>
+
+    <delete id="delete">
+        update project_db set deleted=1
+        where id=#{arg0,jdbcType=BIGINT}
+        and deleted=0
+    </delete>
+
+
+    <sql id="queryCondition">
+        <if test="projectId != null ">
+            and t.project_id = #{projectId}
+        </if>
+        <if test="dbConnectName != null and dbConnectName != '' ">
+            <bind name="dbConnectName_pattern" value="'%' + dbConnectName + '%'" />
+            and t.db_connect_name like #{dbConnectName_pattern}
+        </if>
+        <if test="dialectName != null and dialectName != '' ">
+            and t.dialect_name = #{dialectName}
+        </if>
+        <if test="dbHost != null and dbHost != '' ">
+            and t.db_host = #{dbHost}
+        </if>
+        <if test="dbPort != null ">
+            and t.db_port = #{dbPort}
+        </if>
+        <if test="dbName != null and dbName != '' ">
+            and t.db_name = #{dbName}
+        </if>
+        <if test="dbUser != null and dbUser != '' ">
+            and t.db_user = #{dbUser}
+        </if>
+        <if test="dbPassword != null and dbPassword != '' ">
+            and t.db_password = #{dbPassword}
+        </if>
+        <if test="isSavePassword != null ">
+            and t.is_save_password = #{isSavePassword}
+        </if>
+    </sql>
+
+    <sql id="orderCondition">
+        order by
+        <if test="orderNoSortSign != null and orderNoSortSign != 0">
+            t.order_no <if test="orderNoSortSign > 0">asc</if><if test="orderNoSortSign &lt; 0">desc</if>,
+        </if>
+        <if test="createdTimeSortSign != null and createdTimeSortSign != 0">
+            t.created_time <if test="createdTimeSortSign > 0">asc</if><if test="createdTimeSortSign &lt; 0">desc</if>,
+        </if>
+        <if test="operatedTimeSortSign != null and operatedTimeSortSign != 0">
+            t.operated_time <if test="operatedTimeSortSign > 0">asc</if><if test="operatedTimeSortSign &lt; 0">desc</if>,
+        </if>
+            t.operated_time desc
+    </sql>
+
+    <select id="findCountByQuery" parameterType="ProjectDbQO" resultType="int">
+        select count(1) from project_db t
+        <where>
+            and t.deleted=0
+        <include refid="queryCondition"/>
+        </where>
+    </select>
+
+    <select id="findListByQuery" parameterType="ProjectDbQO" resultType="ProjectDbListVO">
+        select
+            <include refid="projectDbColumns"><property name="alias" value="t"/></include>
+        from project_db t
+        <where>
+            and t.deleted=0
+        <include refid="queryCondition"/>
+        </where>
+        <include refid="orderCondition"/>
+        limit #{startIndex},#{pageSize}
+    </select>
+
+
+
+    <!-- 以上是自动生成的代码，尽量不要手动修改，新的sql请写在本行注释以下区域 -->
+
+
+</mapper>

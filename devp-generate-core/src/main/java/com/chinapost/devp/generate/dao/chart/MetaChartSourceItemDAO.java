@@ -1,0 +1,43 @@
+package com.chinapost.devp.generate.dao.chart;
+
+import com.chinapost.devp.common.dao.DAO;
+import com.chinapost.devp.generate.pojo.po.chart.source.item.MetaChartSourceItemPO;
+import com.chinapost.devp.generate.pojo.qo.chart.MetaChartSourceItemQO;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+/**
+ * 【图表数据源项】数据库操作
+ *
+ * @author: cpit
+ * @date: 2020/04/04
+ */
+@Repository
+@Mapper
+public interface MetaChartSourceItemDAO extends DAO<MetaChartSourceItemPO> {
+
+    /**
+     * 根据条件查询【图表数据源项】列表
+     *
+     * @param metaChartSourceItemQO
+     * @return
+     */
+    List<MetaChartSourceItemPO> findListByQuery(MetaChartSourceItemQO metaChartSourceItemQO);
+
+
+    List<MetaChartSourceItemPO> findByProjectId(Integer projectId);
+
+
+    List<MetaChartSourceItemPO> findBySourceId(Integer sourceId);
+
+    List<Integer> findOtherItemIds(@Param("sourceId") Integer sourceId,
+                                   @Param("oldItemIds") List<Integer> oldItemIds);
+
+
+}
+
+
+

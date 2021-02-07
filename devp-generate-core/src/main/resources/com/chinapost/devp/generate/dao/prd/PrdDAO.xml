@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinapost.devp.generate.dao.prd.PrdDAO">
+
+
+    <sql id="prdColumns">
+        ${alias}.id,
+        ${alias}.project_group_id as projectGroupId,
+        ${alias}.parent_id as parentId,
+        ${alias}.parent_ids as parentIds,
+        ${alias}.title,
+        ${alias}.leaf,
+        ${alias}.sort,
+        ${alias}.content,
+        ${alias}.created_time as createdTime,
+        ${alias}.created_by as createdBy,
+        ${alias}.operated_time as operatedTime,
+        ${alias}.operated_by as operatedBy,
+        ${alias}.deleted
+    </sql>
+
+
+    <select id="findById" resultType="PrdPO">
+        select
+            <include refid="prdColumns"><property name="alias" value="t"/></include>
+        from prd t
+        <where>
+            and t.deleted=0
+            and t.id = #{arg0}
+        </where>
+        limit 1
+    </select>
+
+    <select id="exist" resultType="boolean">
+        select count(1) from prd
+        <where>
+            and deleted=0
+            and id = #{arg0}
+        </where>
+    </select>
+
+    <insert id="_save" keyProperty="id" parameterType="PrdPO">
+        insert into prd(
+        id,
+        project_group_id,
+        parent_id,
+        parent_ids,
+        title,
+        leaf,
+        sort,
+        content,
+        created_time,
+        created_by,
+        operated_time,
+        operated_by,
+        deleted
+        ) VALUES (
+        #{id,jdbcType=VARCHAR},
+        #{projectGroupId,jdbcType=INTEGER},
+        #{parentId,jdbcType=VARCHAR},
+        #{parentIds,jdbcType=VARCHAR},
+        #{title,jdbcType=VARCHAR},
+        #{leaf,jdbcType=INTEGER},
+        #{sort,jdbcType=INTEGER},
+        #{content,jdbcType=VARCHAR},
+        #{createdTime,jdbcType=TIMESTAMP},
+        #{createdBy,jdbcType=VARCHAR},
+        #{operatedTime,jdbcType=TIMESTAMP},
+        #{operatedBy,jdbcType=VARCHAR},
+        #{deleted,jdbcType=BOOLEAN}
+        )
+    </insert>
+
+
+    <update id="_update" parameterType="PrdPO">
+        update prd set
+            project_group_id=#{projectGroupId,jdbcType=INTEGER},
+            parent_id=#{parentId,jdbcType=VARCHAR},
+            parent_ids=#{parentIds,jdbcType=VARCHAR},
+            title=#{title,jdbcType=VARCHAR},
+            leaf=#{leaf,jdbcType=INTEGER},
+            sort=#{sort,jdbcType=INTEGER},
+            content=#{content,jdbcType=VARCHAR},
+            operated_time=#{operatedTime,jdbcType=TIMESTAMP},
+            operated_by=#{operatedBy,jdbcType=VARCHAR},
+            deleted=#{deleted,jdbcType=BOOLEAN}
+        where id=#{id,jdbcType=VARCHAR}
+        and deleted=0
+    </update>
+
+    <delete id="delete">
+        update prd set deleted=1
+        where id=#{arg0,jdbcType=VARCHAR}
+        and deleted=0
+    </delete>
+
+
+    <sql id="queryCondition">
+        <if test="projectGroupId != null ">
+            and t.project_group_id = #{projectGroupId}
+        </if>
+        <if test="title != null and title.size() > 0 ">
+            and t.title in
+            <foreach collection="title" item="_value" open="(" separator="," close=")">
+            #{_value}
+            </foreach>
+        </if>
+    </sql>
+
+    <sql id="orderCondition">
+        order by
+        <if test="createdTimeSortSign != null and createdTimeSortSign != 0">
+            t.created_time <if test="createdTimeSortSign > 0">asc</if><if test="createdTimeSortSign &lt; 0">desc</if>,
+        </if>
+        <if test="operatedTimeSortSign != null and operatedTimeSortSign != 0">
+            t.operated_time <if test="operatedTimeSortSign > 0">asc</if><if test="operatedTimeSortSign &lt; 0">desc</if>,
+        </if>
+            t.operated_time desc
+    </sql>
+
+    <select id="findCountByQuery" parameterType="PrdQO" resultType="int">
+        select count(1) from prd t
+        <where>
+            and t.deleted=0
+        <include refid="queryCondition"/>
+        </where>
+    </select>
+
+    <select id="findListByQuery" parameterType="PrdQO" resultType="PrdListVO">
+        select
+            <include refid="prdColumns"><property name="alias" value="t"/></include>
+        from prd t
+        <where>
+            and t.deleted=0
+        <include refid="queryCondition"/>
+        </where>
+        <include refid="orderCondition"/>
+        limit #{startIndex},#{pageSize}
+    </select>
+
+    <select id="findOptions" parameterType="OptionQO" resultType="OptionVO">
+        select
+            t.id as `key`,
+            t.title as `value`
+        from prd t
+        <where>
+            and t.deleted=0
+            <if test="lastKey != null">
+                and t.id > #{lastKey}
+            </if>
+            <if test="matchValue != null and matchValue.size() > 0 ">
+                and t.title in #{matchValue}
+            </if>
+        </where>
+        order by t.id asc
+        limit #{limit}
+    </select>
+
+    <select id="findByGroupId" resultType="PrdPO">
+        select
+            <include refid="prdColumns"><property name="alias" value="t"/></include>
+        from prd t
+        <where>
+            and t.deleted=0
+            and t.project_group_id = #{projectGroupId}
+        </where>
+    </select>
+
+
+
+    <!-- 以上是自动生成的代码，尽量不要手动修改，新的sql请写在本行注释以下区域 -->
+
+
+</mapper>

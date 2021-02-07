@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinapost.devp.generate.dao.MetaProjectDAO">
+
+    <select id="findById" resultType="MetaProjectPO">
+        select * from meta_project
+        where deleted = 0
+        and project_id = #{projectId,jdbcType=INTEGER}
+    </select>
+
+    <select id="exist" resultType="boolean">
+        select count(*) from meta_project
+        where deleted = 0
+        and project_id = #{projectId,jdbcType=INTEGER}
+    </select>
+
+    <insert id="_save" useGeneratedKeys="true" keyProperty="projectId" parameterType="MetaProjectPO">
+        insert into meta_project (
+          project_id,
+          project_group_id,
+          package_name,
+          project_name,
+          project_short_name,
+          project_desc, group_id,
+          author,
+          template_id,
+          template_id_2,
+          template_id_3,
+          remote,
+          remote_url,
+          remote_url_2,
+          remote_url_3,
+          username,
+          `password`,
+          project_version,
+          feature,
+          labels,
+          team_id,
+          created_time,
+          created_by,
+          operated_time,
+          operated_by,
+          deleted,
+          version)
+        values (
+          #{projectId,jdbcType=INTEGER},
+          #{projectGroupId,jdbcType=INTEGER},
+          #{packageName,jdbcType=VARCHAR},
+          #{projectName,jdbcType=VARCHAR},
+          #{projectShortName,jdbcType=VARCHAR},
+          #{projectDesc,jdbcType=VARCHAR},
+          #{groupId,jdbcType=VARCHAR},
+          #{author,jdbcType=VARCHAR},
+          #{templateId,jdbcType=INTEGER},
+          #{templateId2,jdbcType=INTEGER},
+          #{templateId3,jdbcType=INTEGER},
+          #{remote,jdbcType=BOOLEAN},
+          #{remoteUrl,jdbcType=VARCHAR},
+          #{remoteUrl2,jdbcType=VARCHAR},
+          #{remoteUrl3,jdbcType=VARCHAR},
+          #{username,jdbcType=VARCHAR},
+          #{password,jdbcType=VARCHAR},
+          #{projectVersion,jdbcType=INTEGER},
+          #{feature,jdbcType=VARCHAR},
+          #{labels,jdbcType=VARCHAR},
+          #{teamId,jdbcType=INTEGER},
+          #{createdTime,jdbcType=TIMESTAMP},
+          #{createdBy,jdbcType=VARCHAR},
+          #{operatedTime,jdbcType=TIMESTAMP},
+          #{operatedBy,jdbcType=VARCHAR},
+          #{deleted,jdbcType=SMALLINT},
+          #{version,jdbcType=INTEGER})
+    </insert>
+
+    <update id="_update" parameterType="MetaProjectPO">
+        update meta_project
+        set
+            package_name = #{packageName,jdbcType=VARCHAR},
+            project_group_id = #{projectGroupId,jdbcType=VARCHAR},
+            project_name = #{projectName,jdbcType=VARCHAR},
+            project_desc = #{projectDesc,jdbcType=VARCHAR},
+            project_short_name = #{projectShortName,jdbcType=VARCHAR},
+            group_id = #{groupId,jdbcType=VARCHAR},
+            author = #{author,jdbcType=VARCHAR},
+            template_id = #{templateId,jdbcType=INTEGER},
+            template_id_2 = #{templateId2,jdbcType=INTEGER},
+            template_id_3 = #{templateId3,jdbcType=INTEGER},
+            remote = #{remote,jdbcType=BOOLEAN},
+            remote_url = #{remoteUrl,jdbcType=VARCHAR},
+            remote_url_2 = #{remoteUrl2,jdbcType=VARCHAR},
+            remote_url_3 = #{remoteUrl3,jdbcType=VARCHAR},
+            username = #{username,jdbcType=VARCHAR},
+            `password` = #{password,jdbcType=VARCHAR},
+            project_version = #{projectVersion,jdbcType=INTEGER},
+            feature = #{feature,jdbcType=VARCHAR},
+            labels = #{labels,jdbcType=VARCHAR},
+            team_id = #{teamId,jdbcType=INTEGER},
+            operated_time = #{operatedTime,jdbcType=TIMESTAMP},
+            operated_by = #{operatedBy,jdbcType=VARCHAR},
+            version = #{version,jdbcType=INTEGER}
+        where project_id = #{projectId,jdbcType=INTEGER}
+        and version=#{version,jdbcType=INTEGER}
+        and deleted = 0
+    </update>
+
+    <delete id="delete">
+        update meta_project set
+        deleted = 1
+        where project_id = #{projectId,jdbcType=INTEGER}
+        and deleted = 0
+    </delete>
+
+    <select id="findListByQuery" parameterType="MetaProjectQO" resultType="MetaProjectListVO">
+        select * from meta_project t
+        where t.deleted = 0
+            and (
+                t.created_by = #{_creator}
+            <if test="_teamId != null and _teamId.size()>0 ">
+                or t.team_id in
+                <foreach collection="_teamId" item="_id" open="(" separator="," close=")">
+                    #{_id}
+                </foreach>
+            </if>
+            )
+            <if test="projectGroupId != null ">
+                and t.project_group_id = #{projectGroupId}
+            </if>
+
+        order by t.created_time
+    </select>
+
+    <select id="findModules" resultType="string">
+        select distinct `module`
+        from (
+            select `module` from meta_entity
+            where deleted=0
+                and project_id = #{projectId,jdbcType=INTEGER}
+                and module is not null
+
+            union all
+
+            select `module` from meta_chart
+            where deleted=0
+                and project_id = #{projectId,jdbcType=INTEGER}
+                and module is not null
+        ) as t
+    </select>
+
+</mapper>

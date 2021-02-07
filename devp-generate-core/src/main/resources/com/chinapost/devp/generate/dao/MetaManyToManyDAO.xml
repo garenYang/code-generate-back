@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinapost.devp.generate.dao.MetaManyToManyDAO">
+
+    <select id="findById" resultType="MetaManyToManyPO">
+        select * from meta_mtm
+        where deleted=0
+        and mtm_id = #{mtmId,jdbcType=INTEGER}
+    </select>
+
+    <select id="exist" resultType="boolean">
+        select count(*) from meta_mtm
+        where deleted=0
+        and mtm_id = #{mtmId,jdbcType=INTEGER}
+    </select>
+
+    <insert id="_save" useGeneratedKeys="true" keyProperty="mtmId" parameterType="MetaManyToManyPO">
+        insert into meta_mtm (
+            mtm_id,
+            project_id,
+            `table_name`,
+            `schema_name`,
+            `desc`,
+            entity_id1,
+            entity_id2,
+            hold_refer1,
+            hold_refer2,
+            entity_id_field1,
+            entity_id_field2,
+            need_id,
+            big_id,
+            feature,
+            created_time,
+            created_by,
+            operated_time,
+            operated_by,
+            deleted,
+            version
+        )
+        values (
+            #{mtmId,jdbcType=INTEGER},
+            #{projectId,jdbcType=INTEGER},
+            #{tableName,jdbcType=VARCHAR},
+            #{schemaName,jdbcType=VARCHAR},
+            #{desc,jdbcType=VARCHAR},
+            #{entityId1,jdbcType=INTEGER},
+            #{entityId2,jdbcType=INTEGER},
+            #{holdRefer1,jdbcType=BOOLEAN},
+            #{holdRefer2,jdbcType=BOOLEAN},
+            #{entityIdField1,jdbcType=VARCHAR},
+            #{entityIdField2,jdbcType=VARCHAR},
+            #{needId,jdbcType=BOOLEAN},
+            #{bigId,jdbcType=BOOLEAN},
+            #{feature,jdbcType=VARCHAR},
+            #{createdTime,jdbcType=TIMESTAMP},
+            #{createdBy,jdbcType=VARCHAR},
+            #{operatedTime,jdbcType=TIMESTAMP},
+            #{operatedBy,jdbcType=VARCHAR},
+            #{deleted,jdbcType=SMALLINT},
+            #{version,jdbcType=INTEGER}
+        )
+    </insert>
+
+    <update id="_update" parameterType="MetaManyToManyPO">
+        update meta_mtm
+        set project_id = #{projectId,jdbcType=INTEGER},
+        `table_name` = #{tableName,jdbcType=VARCHAR},
+        `schema_name` = #{schemaName,jdbcType=VARCHAR},
+        `desc` = #{desc,jdbcType=VARCHAR},
+        entity_id1 = #{entityId1,jdbcType=INTEGER},
+        entity_id2 = #{entityId2,jdbcType=INTEGER},
+        hold_refer1 = #{holdRefer1,jdbcType=BOOLEAN},
+        hold_refer2 = #{holdRefer2,jdbcType=BOOLEAN},
+        entity_id_field1=#{entityIdField1,jdbcType=VARCHAR},
+        entity_id_field2=#{entityIdField2,jdbcType=VARCHAR},
+        need_id=#{needId,jdbcType=BOOLEAN},
+        big_id=#{bigId,jdbcType=BOOLEAN},
+        feature = #{feature,jdbcType=VARCHAR},
+        operated_time = #{operatedTime,jdbcType=TIMESTAMP},
+        operated_by = #{operatedBy,jdbcType=VARCHAR},
+        version = #{version,jdbcType=INTEGER}
+        where mtm_id = #{mtmId,jdbcType=INTEGER}
+        and version=#{version,jdbcType=INTEGER}
+        and deleted=0
+    </update>
+
+    <delete id="delete">
+        update meta_mtm set
+        deleted=1
+        where mtm_id = #{mtmId,jdbcType=INTEGER}
+        and deleted=0
+    </delete>
+
+    <select id="findListByQuery" parameterType="MetaManyToManyQO" resultType="MetaManyToManyListVO">
+        select * from meta_mtm t
+        where t.deleted=0
+        and t.project_id = #{projectId,jdbcType=INTEGER}
+        order by t.created_time
+    </select>
+
+    <select id="findByProjectId" parameterType="int" resultType="MetaManyToManyPO">
+        select * from meta_mtm
+        where deleted=0
+        and project_id = #{projectId,jdbcType=INTEGER}
+        order by mtm_id
+    </select>
+
+    <select id="getCountByEntityId" resultType="java.lang.Integer">
+        select count(1) from meta_mtm t
+        where t.deleted=0
+        and (
+            t.entity_id1 = #{arg0}
+            or t.entity_id2 = #{arg0}
+        )
+    </select>
+
+    <select id="findManyToManyExists" resultType="java.lang.Boolean">
+        select count(1) from meta_mtm t
+        where t.deleted=0
+            and t.entity_id1 = #{entityId1}
+            and t.entity_id2 = #{entityId2}
+        <if test="mtmId != null">
+            and t.mtm_id != #{mtmId}
+        </if>
+    </select>
+</mapper>

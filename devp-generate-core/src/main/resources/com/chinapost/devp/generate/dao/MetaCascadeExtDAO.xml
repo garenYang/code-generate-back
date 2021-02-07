@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinapost.devp.generate.dao.MetaCascadeExtDAO">
+
+
+    <select id="findById" resultType="MetaCascadeExtPO">
+        select * from meta_cascade_ext
+        where deleted=0
+              and cascade_ext_id = #{cascadeExtId,jdbcType=INTEGER}
+    </select>
+
+    <select id="exist" resultType="boolean">
+        select count(*) from meta_cascade_ext
+        where deleted=0
+              and cascade_ext_id = #{cascadeExtId,jdbcType=INTEGER}
+    </select>
+
+    <insert id="_save" useGeneratedKeys="true" keyProperty="cascadeExtId" parameterType="MetaCascadeExtPO">
+        insert into `meta_cascade_ext`(
+            `cascade_ext_id`,
+            `project_id`,
+            `field_id`,
+            `entity_id`,
+            `alias`,
+            `list`,
+            `show`,
+            `query`,
+            `cascade_entity_id`,
+            `cascade_field_id`,
+            `created_time`,
+            `created_by`,
+            `operated_time`,
+            `operated_by`,
+            `deleted`,
+            `version`
+        ) VALUES (
+            #{cascadeExtId,jdbcType=INTEGER},
+            #{projectId,jdbcType=INTEGER},
+            #{fieldId,jdbcType=INTEGER},
+            #{entityId,jdbcType=INTEGER},
+            #{alias,jdbcType=VARCHAR},
+            #{list,jdbcType=BOOLEAN},
+            #{show,jdbcType=BOOLEAN},
+            #{query,jdbcType=BOOLEAN},
+            #{cascadeEntityId,jdbcType=INTEGER},
+            #{cascadeFieldId,jdbcType=INTEGER},
+            #{createdTime,jdbcType=TIMESTAMP},
+            #{createdBy,jdbcType=VARCHAR},
+            #{operatedTime,jdbcType=TIMESTAMP},
+            #{operatedBy,jdbcType=VARCHAR},
+            #{deleted,jdbcType=SMALLINT},
+            #{version,jdbcType=INTEGER}
+        )
+    </insert>
+
+
+    <update id="_update" parameterType="MetaCascadeExtPO">
+        update meta_cascade_ext
+        set
+            `field_id` = #{fieldId,jdbcType=INTEGER},
+            `project_id` = #{projectId,jdbcType=INTEGER},
+            `entity_id` = #{entityId,jdbcType=INTEGER},
+            `alias` = #{alias,jdbcType=VARCHAR},
+            `list` = #{list,jdbcType=BOOLEAN},
+            `show` = #{show,jdbcType=BOOLEAN},
+            `query` = #{query,jdbcType=BOOLEAN},
+            `cascade_entity_id` = #{cascadeEntityId,jdbcType=INTEGER},
+            `cascade_field_id` = #{cascadeFieldId,jdbcType=INTEGER},
+            operated_time = #{operatedTime,jdbcType=TIMESTAMP},
+            operated_by = #{operatedBy,jdbcType=VARCHAR},
+            version = #{version,jdbcType=INTEGER}
+        where cascade_ext_id = #{cascadeExtId,jdbcType=INTEGER}
+              and version=#{version,jdbcType=INTEGER}
+              and deleted=0
+    </update>
+
+
+    <delete id="delete">
+        update meta_cascade_ext set
+            deleted=1
+        where cascade_ext_id = #{cascadeExtId,jdbcType=INTEGER}
+              and deleted=0
+    </delete>
+
+
+
+    <select id="findListByQuery" parameterType="MetaCascadeExtQO" resultType="MetaCascadeExtListVO">
+        select
+            t.*,
+            f.jfield_name as cascadeJfieldName,
+            f.field_desc as cascadeFieldDesc
+        from meta_cascade_ext t
+        left outer join meta_field f
+            on t.cascade_field_id=f.field_id and f.deleted = 0
+        where
+            t.deleted=0
+            and t.field_id = #{fieldId,jdbcType=INTEGER}
+        order by t.created_time
+    </select>
+
+    <select id="findByFieldId" parameterType="int" resultType="MetaCascadeExtPO">
+        select
+            t.*
+        from meta_cascade_ext t
+        where
+            t.deleted=0
+            and t.field_id = #{arg0}
+        order by t.created_time
+    </select>
+
+    <select id="findPkByCascadeFieldId" parameterType="int" resultType="int">
+        select
+            t.`cascade_ext_id`
+        from meta_cascade_ext t
+        where
+            t.deleted=0
+            and t.cascade_field_id = #{arg0}
+    </select>
+
+    <select id="cascadeFieldIdExists" resultType="java.lang.Boolean">
+        select
+            count(1)
+        from meta_cascade_ext t
+        where
+            t.deleted=0
+            and t.field_id = #{fieldId}
+            and t.cascade_entity_id = #{cascadeEntityId}
+            and t.cascade_field_id = #{cascadeFieldId}
+        <if test="cascadeExtId != null">
+            and t.cascade_ext_id != #{cascadeExtId}
+        </if>
+    </select>
+
+</mapper>

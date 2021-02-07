@@ -1,0 +1,21 @@
+version: '3'
+services:
+  devp-mysql:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+    restart: always
+    container_name: devp-mysql
+    image: devp-mysql
+    ports:
+      - 3336:3306
+#    networks:
+#      - cpms-overlay
+#
+#networks:
+#  cpms-overlay:
+#    external: true
+
+

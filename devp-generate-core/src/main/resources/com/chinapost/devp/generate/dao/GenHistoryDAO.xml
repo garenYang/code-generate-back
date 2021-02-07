@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinapost.devp.generate.dao.GenHistoryDAO">
+
+    <sql id="genHistoryColumns">
+        ${alias}.history_id,
+        ${alias}.project_id,
+        ${alias}.remote_url,
+        ${alias}.`commit`,
+        ${alias}.branch,
+        ${alias}.sys_version,
+        ${alias}.project_version,
+        ${alias}.template_id,
+        ${alias}.template_inner_version,
+        ${alias}.created_time,
+        ${alias}.created_by,
+        ${alias}.operated_time,
+        ${alias}.operated_by,
+        ${alias}.version,
+        ${alias}.deleted
+    </sql>
+
+
+    <select id="findById" resultType="GenHistoryPO">
+        select
+        <include refid="genHistoryColumns"><property name="alias" value="t"/></include>
+        from gen_history t
+        <where>
+            and t.deleted=0
+            and t.history_id = #{arg0}
+        </where>
+    </select>
+
+    <select id="exist" resultType="boolean">
+        select count(1) from gen_history
+        <where>
+            and deleted=0
+            and history_id = #{arg0}
+        </where>
+    </select>
+
+    <insert id="_save" useGeneratedKeys="true" keyProperty="historyId" parameterType="GenHistoryPO">
+        insert into gen_history(
+        history_id,
+        project_id,
+        remote_url,
+        `commit`,
+        branch,
+        sys_version,
+        project_version,
+        template_id,
+        template_inner_version,
+        created_time,
+        created_by,
+        operated_time,
+        operated_by,
+        version,
+        deleted
+        ) VALUES (
+        #{historyId,jdbcType=INTEGER},
+        #{projectId,jdbcType=INTEGER},
+        #{remoteUrl,jdbcType=VARCHAR},
+        #{commit,jdbcType=VARCHAR},
+        #{branch,jdbcType=VARCHAR},
+        #{sysVersion,jdbcType=VARCHAR},
+        #{projectVersion,jdbcType=INTEGER},
+        #{templateId,jdbcType=INTEGER},
+        #{templateInnerVersion,jdbcType=INTEGER},
+        #{createdTime,jdbcType=TIMESTAMP},
+        #{createdBy,jdbcType=VARCHAR},
+        #{operatedTime,jdbcType=TIMESTAMP},
+        #{operatedBy,jdbcType=VARCHAR},
+        #{version,jdbcType=INTEGER},
+        #{deleted,jdbcType=INTEGER}
+        )
+    </insert>
+
+
+    <update id="_update" parameterType="GenHistoryPO">
+        update gen_history set
+        history_id=#{historyId,jdbcType=INTEGER},
+        project_id=#{projectId,jdbcType=INTEGER},
+        remote_url=#{remoteUrl,jdbcType=VARCHAR},
+        `commit`=#{commit,jdbcType=VARCHAR},
+        branch=#{branch,jdbcType=VARCHAR},
+        sys_version=#{sysVersion,jdbcType=VARCHAR},
+        project_version=#{projectVersion,jdbcType=INTEGER},
+        template_id=#{templateId,jdbcType=INTEGER},
+        template_inner_version=#{templateInnerVersion,jdbcType=INTEGER},
+        created_time=#{createdTime,jdbcType=TIMESTAMP},
+        created_by=#{createdBy,jdbcType=VARCHAR},
+        operated_time=#{operatedTime,jdbcType=TIMESTAMP},
+        operated_by=#{operatedBy,jdbcType=VARCHAR},
+        version = version+1,
+        deleted=#{deleted,jdbcType=INTEGER}
+        where history_id=#{historyId,jdbcType=INTEGER}
+        and version=#{version,jdbcType=INTEGER}
+        and deleted=0
+    </update>
+
+    <delete id="delete">
+        update gen_history set deleted=1
+        where history_id=#{arg0,jdbcType=INTEGER}
+        and deleted=0
+    </delete>
+
+
+    <sql id="queryCondition">
+        <if test="projectId != null  ">
+            and t.project_id = #{projectId}
+        </if>
+    </sql>
+
+
+    <select id="findCountByQuery" parameterType="GenHistoryQO" resultType="int">
+        select count(1) from gen_history t
+        <where>
+            and t.deleted=0
+            <include refid="queryCondition"/>
+        </where>
+    </select>
+
+    <select id="findListByQuery" parameterType="GenHistoryQO" resultType="GenHistoryListVO">
+        select * from gen_history t
+        <where>
+            and t.deleted=0
+            <include refid="queryCondition"/>
+        </where>
+        order by t.created_time desc
+        limit #{startIndex},#{pageSize}
+    </select>
+
+    <select id="findByProjectIdAndRemoteUrl" resultType="GenHistoryPO">
+        select
+        <include refid="genHistoryColumns"><property name="alias" value="t"/></include>
+        from gen_history t
+        <where>
+            and t.deleted=0
+            and t.project_id = #{projectId}
+            and t.remote_url = #{remoteUrl}
+        </where>
+        order by t.created_time desc
+        limit 1
+    </select>
+</mapper>

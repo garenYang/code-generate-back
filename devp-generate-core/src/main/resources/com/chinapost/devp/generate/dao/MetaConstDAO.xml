@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinapost.devp.generate.dao.MetaConstDAO">
+
+    <select id="findById" resultType="MetaConstPO">
+        select * from meta_const
+        where deleted=0
+        and const_id = #{constId,jdbcType=INTEGER}
+    </select>
+
+    <select id="exist" resultType="boolean">
+        select count(*) from meta_const
+        where deleted=0
+        and const_id = #{constId,jdbcType=INTEGER}
+    </select>
+
+    <insert id="_save" useGeneratedKeys="true" keyProperty="constId" parameterType="MetaConstPO">
+        insert into meta_const (
+          const_id, project_id, const_name,
+          const_remark, const_type,
+          created_time, created_by, operated_time,
+          operated_by, deleted, version
+          )
+        values (#{constId,jdbcType=INTEGER}, #{projectId,jdbcType=INTEGER}, #{constName,jdbcType=VARCHAR},
+          #{constRemark,jdbcType=VARCHAR}, #{constType,jdbcType=INTEGER},
+          #{createdTime,jdbcType=TIMESTAMP}, #{createdBy,jdbcType=VARCHAR}, #{operatedTime,jdbcType=TIMESTAMP},
+          #{operatedBy,jdbcType=VARCHAR}, #{deleted,jdbcType=SMALLINT}, #{version,jdbcType=INTEGER}
+          )
+    </insert>
+
+    <update id="_update" parameterType="MetaConstPO">
+        update meta_const
+        set project_id = #{projectId,jdbcType=INTEGER},
+          const_name = #{constName,jdbcType=VARCHAR},
+          const_remark = #{constRemark,jdbcType=VARCHAR},
+          const_type = #{constType,jdbcType=INTEGER},
+          operated_time = #{operatedTime,jdbcType=TIMESTAMP},
+          operated_by = #{operatedBy,jdbcType=VARCHAR},
+          version = #{version,jdbcType=INTEGER}
+        where const_id = #{constId,jdbcType=INTEGER}
+        and version=#{version,jdbcType=INTEGER}
+        and deleted=0
+    </update>
+
+    <delete id="delete">
+        update meta_const set
+        deleted=1
+        where const_id = #{constId,jdbcType=INTEGER}
+        and deleted=0
+    </delete>
+
+    <select id="findCountByQuery" parameterType="MetaConstQO" resultType="int">
+        select count(1) from meta_const t
+        where t.deleted=0
+        and t.project_id = #{projectId,jdbcType=INTEGER}
+    </select>
+
+    <select id="findListByQuery" parameterType="MetaConstQO" resultType="MetaConstListVO">
+        select * from meta_const t
+        where t.deleted=0
+        and t.project_id = #{projectId,jdbcType=INTEGER}
+        order by t.created_time
+    </select>
+
+    <select id="findIdsByProject" resultType="int">
+        select const_id from meta_const
+        where deleted=0
+        and project_id = #{projectId,jdbcType=INTEGER}
+    </select>
+</mapper>

@@ -1,0 +1,21 @@
+server:
+  servlet:
+    context-path: /
+    encoding:
+      force: true
+  port: 8089
+spring:
+  application:
+    name: devp-kanban
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://100.5.6.61:3336/devp?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 12345
+  jpa:
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: none
+        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+

@@ -1,0 +1,24 @@
+spring:
+    datasource:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://100.5.6.61:3336/devp?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&failOverReadOnly=false&useSSL=false&serverTimezone=Asia/Shanghai
+        username: root
+        password: 12345
+logging:
+    level:
+        root: info
+        java:
+            sql: debug
+        com:
+            devp: trace
+devp:
+    # 缓存数据目录，用来临时存储模板文件、生成的代码文件，每次启动都会清空该目录
+    data-dir: D:\devp
+    # 启动时初始化用户表
+    default-user-init: true
+    # 0:非开发模式 1:开发模式-全量替换 2:开发模式-增量替换
+    dev-mode: 0
+    # 开发模式下，自动生成代码到该路径
+    dev-project-dir: D:\devp
+    # 是否启用登录校验，一般不启用，除非部署到公开网络环境，不想让外人访问
+    security-enabled: false

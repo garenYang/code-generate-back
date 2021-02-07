@@ -1,0 +1,192 @@
+package com.chinapost.devp.generate.service;
+
+import com.chinapost.devp.common.constant.ErrorCode;
+import com.chinapost.devp.common.exception.BusinessException;
+import com.chinapost.devp.common.optimistic.OptimisticLock;
+import com.chinapost.devp.generate.config.GenerateProperties;
+import com.chinapost.devp.generate.dao.CodeTemplateDAO;
+import com.chinapost.devp.generate.pojo.dto.CodeTemplateAddDTO;
+import com.chinapost.devp.generate.pojo.dto.CodeTemplateUpdateDTO;
+import com.chinapost.devp.generate.pojo.mapper.CodeTemplateMapper;
+import com.chinapost.devp.generate.pojo.po.CodeTemplatePO;
+import com.chinapost.devp.generate.pojo.qo.CodeTemplateQO;
+import com.chinapost.devp.generate.pojo.vo.CodeTemplateListVO;
+import com.chinapost.devp.generate.pojo.vo.CodeTemplateShowVO;
+import com.chinapost.devp.generate.util.VersionUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+/**
+ * 【代码模板】删改查服务
+ *
+ * @author: cpit
+ * @date: 2020/10/24
+ */
+@Service
+public class CodeTemplateService {
+
+    @Autowired
+    private CodeTemplateDAO codeTemplateDAO;
+    @Autowired
+    private GenerateProperties generateProperties;
+
+    /**
+     * 校验数据唯一性
+     *
+     * @param codeTemplate
+     * @param isUpdate     是否更新校验
+     */
+    private void checkUnique(CodeTemplatePO codeTemplate, boolean isUpdate) {
+        if (codeTemplateDAO.notUnique(codeTemplate.getCode(), codeTemplate.getTemplateVersion(),
+                isUpdate ? codeTemplate.getTemplateId() : null)) {
+            throw new BusinessException(ErrorCode.DUPLICATE_KEY, "模板编码+版本号有重复");
+        }
+    }
+
+    /**
+     * 新增【代码模板】
+     *
+     * @param codeTemplateDTO
+     * @return
+     */
+    @Transactional(rollbackFor = RuntimeException.class)
+    public CodeTemplatePO save(CodeTemplateAddDTO codeTemplateDTO) {
+        CodeTemplatePO codeTemplate = CodeTemplateMapper.INSTANCE.fromAddDTO(codeTemplateDTO);
+        // 默认非系统内置模板
+        codeTemplate.setSysDefault(false);
+        this.doSave(codeTemplate);
+        return codeTemplate;
+    }
+
+    /**
+     * 执行保存
+     *
+     * @param templatePO
+     */
+    public void doSave(CodeTemplatePO templatePO) {
+        // 唯一性校验
+        this.checkUnique(templatePO, false);
+        // 默认内部版本号为0
+        templatePO.setInnerVersion(0);
+        codeTemplateDAO.save(templatePO);
+    }
+
+    /**
+     * 修改【代码模板】
+     *
+     * @param codeTemplateUpdateDTO
+     * @return
+     */
+    @Transactional(rollbackFor = RuntimeException.class)
+    @OptimisticLock
+    public CodeTemplatePO update(CodeTemplateUpdateDTO codeTemplateUpdateDTO) {
+        Integer templateId = codeTemplateUpdateDTO.getTemplateId();
+        CodeTemplatePO codeTemplate = this.getCodeTemplate(templateId, true);
+        CodeTemplateMapper.INSTANCE.setUpdateDTO(codeTemplate, codeTemplateUpdateDTO);
+        codeTemplate.setInnerVersion(codeTemplate.getInnerVersion() + 1);
+        // 唯一性校验
+        this.checkUnique(codeTemplate, true);
+        codeTemplateDAO.update(codeTemplate);
+        return codeTemplate;
+    }
+
+    /**
+     * 更新内部版本号
+     *
+     * @param templateId
+     */
+    public void updateInnerVersion(Integer templateId) {
+        CodeTemplatePO templatePO = this.getCodeTemplate(templateId, true);
+        templatePO.setInnerVersion(templatePO.getInnerVersion() + 1);
+        codeTemplateDAO.update(templatePO);
+    }
+
+    /**
+     * 查询列表
+     *
+     * @param codeTemplateQO
+     * @return
+     */
+    public List<CodeTemplateListVO> list(CodeTemplateQO codeTemplateQO) {
+        List<CodeTemplateListVO> page = codeTemplateDAO.findListByQuery(codeTemplateQO);
+        return page;
+    }
+
+    /**
+     * 根据主键获取【代码模板】
+     *
+     * @param templateId 主键
+     * @param force      是否强制获取
+     * @return
+     */
+    public CodeTemplatePO getCodeTemplate(Integer templateId, boolean force) {
+        CodeTemplatePO codeTemplate = codeTemplateDAO.findById(templateId);
+        if (force && codeTemplate == null) {
+            throw new BusinessException(ErrorCode.RECORD_NOT_FIND, "模板id=" + templateId + "不存在");
+        }
+        return codeTemplate;
+    }
+
+
+    /**
+     * 查询【代码模板】详情
+     *
+     * @param templateId
+     * @return
+     */
+    public CodeTemplateShowVO show(Integer templateId) {
+        CodeTemplatePO codeTemplate = this.getCodeTemplate(templateId, true);
+        CodeTemplateShowVO showVO = CodeTemplateMapper.INSTANCE.toShowVO(codeTemplate);
+        return showVO;
+    }
+
+    /**
+     * 删除【代码模板】
+     *
+     * @param templateIds
+     * @return
+     */
+    @Transactional(rollbackFor = RuntimeException.class)
+    public int delete(Integer... templateIds) {
+        int count = 0;
+        for (Integer templateId : templateIds) {
+            count += codeTemplateDAO.delete(templateId);
+        }
+        return count;
+    }
+
+    /**
+     * 判断模板是否存在
+     *
+     * @return
+     */
+    public boolean exists() {
+        return codeTemplateDAO.exists();
+    }
+
+    /**
+     * 校验模板版本
+     *
+     * @param codeTemplate
+     */
+    public void checkTemplateVersion(CodeTemplatePO codeTemplate) {
+        String sysLowVersion = codeTemplate.getSysLowVersion();
+        String sysVersion = generateProperties.getVersion();
+        int[] sysLowVersionArray = VersionUtil.parseVersion(sysLowVersion);
+        int[] sysVersionArray = VersionUtil.parseVersion(sysVersion);
+        if (sysLowVersionArray.length != sysVersionArray.length) {
+            throw new BusinessException(ErrorCode.INNER_DATA_ERROR, "模板兼容最低版本号有误");
+        }
+        // 如果模板兼容最低版本高于当前系统版本，则抛异常
+        if (VersionUtil.compareVersion(sysLowVersionArray, sysVersionArray) > 0) {
+            throw new BusinessException(ErrorCode.INNER_DATA_ERROR, "该模板支持最低系统版本为" + sysLowVersion + "，请升级系统");
+        }
+    }
+
+
+}
+
+

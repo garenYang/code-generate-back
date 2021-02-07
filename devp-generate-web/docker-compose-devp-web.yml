@@ -1,0 +1,24 @@
+version: '3'
+services:
+
+  devp-web:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    image: devp-web
+    hostname: devp-web
+    container_name: devp-web
+    restart: always
+    ports:
+      - 8088:8088
+    extra_hosts:
+      - "devp-mysql:100.5.6.61"
+#    networks:
+#      - default
+#
+#networks:
+#  default:
+#    external:
+#      name: cpms-overlay
+
+

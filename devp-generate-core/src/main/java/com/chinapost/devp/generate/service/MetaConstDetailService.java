@@ -1,0 +1,164 @@
+package com.chinapost.devp.generate.service;
+
+import com.chinapost.devp.common.constant.ErrorCode;
+import com.chinapost.devp.common.exception.BusinessException;
+import com.chinapost.devp.common.optimistic.OptimisticLock;
+import com.chinapost.devp.generate.dao.MetaConstDetailDAO;
+import com.chinapost.devp.generate.pojo.dto.MetaConstDetailAddDTO;
+import com.chinapost.devp.generate.pojo.dto.MetaConstDetailUpdateDTO;
+import com.chinapost.devp.generate.pojo.mapper.MetaConstDetailMapper;
+import com.chinapost.devp.generate.pojo.po.MetaConstDetailPO;
+import com.chinapost.devp.generate.pojo.po.MetaProjectPO;
+import com.chinapost.devp.generate.pojo.qo.MetaConstDetailQO;
+import com.chinapost.devp.generate.pojo.vo.MetaConstDetailListVO;
+import com.chinapost.devp.generate.pojo.vo.MetaConstDetailShowVO;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 常量值增删改查服务
+ *
+ * @author: cpit
+ * @date: 2017/5/12
+ */
+@Service
+public class MetaConstDetailService {
+
+    @Autowired
+    private MetaConstDetailDAO metaConstDetailDAO;
+    @Autowired
+    private MetaProjectService metaProjectService;
+
+    /**
+     * 新增常量值
+     *
+     * @param metaConstDetailDTO
+     * @return
+     */
+    @Transactional(rollbackFor = RuntimeException.class)
+    public MetaConstDetailPO save(MetaConstDetailAddDTO metaConstDetailDTO) {
+        Integer constId = metaConstDetailDTO.getConstId();
+        // 查询项目，并校验操作人
+        MetaProjectPO project = metaProjectService.getProjectByConstId(constId, true);
+        MetaConstDetailPO metaConstDetail = MetaConstDetailMapper.INSTANCE.fromAddDTO(metaConstDetailDTO);
+        metaConstDetail.setProjectId(project.getProjectId());
+        this.doSave(metaConstDetail);
+        metaProjectService.updateProject(project);
+        return metaConstDetail;
+    }
+
+    public void doSave(MetaConstDetailPO constDetailPO) {
+        metaConstDetailDAO.save(constDetailPO);
+    }
+
+    /**
+     * 修改常量值
+     *
+     * @param metaConstDetailUpdateDTO
+     * @return
+     */
+    @Transactional(rollbackFor = RuntimeException.class)
+    @OptimisticLock
+    public MetaConstDetailPO update(MetaConstDetailUpdateDTO metaConstDetailUpdateDTO) {
+        MetaConstDetailPO metaConstDetail = this.getMetaConstDetail(metaConstDetailUpdateDTO.getConstDetailId(), true);
+        // 查询项目，并校验操作人
+        MetaProjectPO project = metaProjectService.getAndCheckProject(metaConstDetail.getProjectId());
+        MetaConstDetailMapper.INSTANCE.setPO(metaConstDetail, metaConstDetailUpdateDTO);
+        metaConstDetailDAO.update(metaConstDetail);
+        metaProjectService.updateProject(project);
+        return metaConstDetail;
+    }
+
+    /**
+     * 获取枚举值对象
+     *
+     * @param constDetailId
+     * @param force
+     * @return
+     */
+    public MetaConstDetailPO getMetaConstDetail(Integer constDetailId, boolean force) {
+        MetaConstDetailPO constDetailPO = metaConstDetailDAO.findById(constDetailId);
+        if (force && constDetailPO == null) {
+            throw new BusinessException(ErrorCode.RECORD_NOT_FIND, "枚举值未找到");
+        }
+        return constDetailPO;
+    }
+
+    /**
+     * 查询分页列表
+     *
+     * @param metaConstDetailQO
+     * @return
+     */
+    public List<MetaConstDetailListVO> list(MetaConstDetailQO metaConstDetailQO) {
+        return metaConstDetailDAO.findListByQuery(metaConstDetailQO);
+    }
+
+    public Map<String, List<MetaConstDetailListVO>> lists(MetaConstDetailQO metaConstDetailQO) {
+        String constName = metaConstDetailQO.getConstName();
+        if (StringUtils.isBlank(constName)) {
+            return null;
+        }
+        Map<String, List<MetaConstDetailListVO>> map = new HashMap<>();
+        String[] split = constName.split(",");
+        for (String name : split) {
+            MetaConstDetailQO qo = new MetaConstDetailQO();
+            qo.setProjectId(metaConstDetailQO.getProjectId());
+            qo.setConstName(name);
+            map.put(name, this.list(qo));
+        }
+        return map;
+    }
+
+    /**
+     * 查询常量值详情
+     *
+     * @param constDetailId
+     * @return
+     */
+    public MetaConstDetailShowVO show(Integer constDetailId) {
+        MetaConstDetailPO metaConstDetail = this.getMetaConstDetail(constDetailId, true);
+        MetaConstDetailShowVO showVO = MetaConstDetailMapper.INSTANCE.toShowVO(metaConstDetail);
+        return showVO;
+    }
+
+    /**
+     * 删除常量值
+     *
+     * @param constDetailId
+     * @return
+     */
+    @Transactional(rollbackFor = RuntimeException.class)
+    public int delete(Integer... constDetailId) {
+        int count = 0;
+        for (Integer id : constDetailId) {
+            MetaConstDetailPO metaConstDetail = this.getMetaConstDetail(id, false);
+            if (metaConstDetail == null) {
+                continue;
+            }
+            // 查询项目，并校验操作人
+            MetaProjectPO project = metaProjectService.getAndCheckProject(metaConstDetail.getProjectId());
+            count += metaConstDetailDAO.delete(id);
+            metaProjectService.updateProject(project);
+        }
+        return count;
+    }
+
+    /**
+     * 根据常量id查询常量值列表
+     *
+     * @param constId
+     * @return
+     */
+    public List<MetaConstDetailPO> findByConstId(Integer constId) {
+        return metaConstDetailDAO.findByConstId(constId);
+    }
+
+
+}

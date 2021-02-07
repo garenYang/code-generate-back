@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>devp</artifactId>
+        <groupId>com.chinapost</groupId>
+        <version>1.0.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>devp-parent</artifactId>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>../devp-common</module>
+        <module>../devp-generate-core</module>
+        <module>../devp-generate-web</module>
+        <module>../devp-kanban</module>
+        <!--<module>../devp-generate-release</module>-->
+    </modules>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <servlet-api.version>3.1.0</servlet-api.version>
+        <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+        <guava.version>30.0-jre</guava.version>
+        <!-- https://mvnrepository.com/artifact/org.mybatis.spring.boot/mybatis-spring-boot-starter -->
+        <mybatis-spring-boot.version>2.1.3</mybatis-spring-boot.version>
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+        <commons-lang3.version>3.11</commons-lang3.version>
+        <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+        <commons-io.version>2.8.0</commons-io.version>
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-collections4 -->
+        <commons-collections.version>4.4</commons-collections.version>
+        <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
+        <commons-codec.version>1.15</commons-codec.version>
+        <!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
+        <org.mapstruct.version>1.4.1.Final</org.mapstruct.version>
+        <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
+        <h2.version>1.4.200</h2.version>
+        <!-- https://mvnrepository.com/artifact/org.jsoup/jsoup -->
+        <jsoup.version>1.13.1</jsoup.version>
+        <!-- https://mvnrepository.com/artifact/io.springfox/springfox-boot-starter -->
+        <springfox-boot-starter.version>3.0.0</springfox-boot-starter.version>
+        <swagger-annotations.version>1.5.24</swagger-annotations.version>
+        <!-- https://mvnrepository.com/artifact/org.freemarker/freemarker -->
+        <freemarker.version>2.3.30</freemarker.version>
+        <!-- https://mvnrepository.com/artifact/net.lingala.zip4j/zip4j -->
+        <zip4j.version>2.6.4</zip4j.version>
+        <mysql2h2.version>0.2.1</mysql2h2.version>
+        <!-- https://mvnrepository.com/artifact/com.alibaba/druid -->
+        <druid.version>1.2.3</druid.version>
+        <!-- https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit -->
+        <jgit.version>5.9.0.202009080501-r</jgit.version>
+        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+        <lombok.version>1.18.12</lombok.version>
+        <easyexcel.version>2.2.6</easyexcel.version>
+        <fastjson.version>1.2.47</fastjson.version>
+        <!-- https://mvnrepository.com/artifact/cn.hutool/hutool-all -->
+        <hutool.version>5.5.7</hutool.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>devp-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>devp-generate-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>devp-generate-web</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-collections4</artifactId>
+                <version>${commons-collections.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>${commons-codec.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>${mybatis-spring-boot.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
+
+            <!-- mapstruct提供属性映射功能 -->
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${org.mapstruct.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>${servlet-api.version}</version>
+            </dependency>
+            <!-- jsoup HTML parser library @ https://jsoup.org/ -->
+            <dependency>
+                <groupId>org.jsoup</groupId>
+                <artifactId>jsoup</artifactId>
+                <version>${jsoup.version}</version>
+            </dependency>
+            <!-- swagger依赖 -->
+            <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-annotations</artifactId>
+                <version>${swagger-annotations.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.springfox</groupId>
+                <artifactId>springfox-boot-starter</artifactId>
+                <version>${springfox-boot-starter.version}</version>
+            </dependency>
+            <!-- freemarker模板引擎：https://freemarker.apache.org/docs/index.html -->
+            <dependency>
+                <groupId>org.freemarker</groupId>
+                <artifactId>freemarker</artifactId>
+                <version>${freemarker.version}</version>
+            </dependency>
+            <!-- zip压缩工具包：http://www.lingala.net/zip4j.html -->
+            <dependency>
+                <groupId>net.lingala.zip4j</groupId>
+                <artifactId>zip4j</artifactId>
+                <version>${zip4j.version}</version>
+            </dependency>
+
+            <!-- 单元测试使用H2内存数据库 -->
+            <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>${h2.version}</version>
+            </dependency>
+            <!-- 单元测试使用mysql脚本转H2 -->
+            <dependency>
+                <groupId>com.parmet</groupId>
+                <artifactId>mysql2h2-parser</artifactId>
+                <version>${mysql2h2.version}</version>
+            </dependency>
+
+            <!-- 数据库连接池，这里主要用来解析sql -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid</artifactId>
+                <version>${druid.version}</version>
+            </dependency>
+
+            <!-- java操作git工具 https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit -->
+            <dependency>
+                <groupId>org.eclipse.jgit</groupId>
+                <artifactId>org.eclipse.jgit</artifactId>
+                <version>${jgit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jgit</groupId>
+                <artifactId>org.eclipse.jgit.archive</artifactId>
+                <version>${jgit.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>easyexcel</artifactId>
+                <version>${easyexcel.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+                <version>2.17</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>

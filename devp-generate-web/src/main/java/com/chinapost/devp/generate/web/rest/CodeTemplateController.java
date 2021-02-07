@@ -1,0 +1,154 @@
+package com.chinapost.devp.generate.web.rest;
+
+import com.chinapost.devp.common.constant.ErrorCode;
+import com.chinapost.devp.common.exception.BusinessException;
+import com.chinapost.devp.generate.constant.WebConst;
+import com.chinapost.devp.generate.pojo.dto.CodeTemplateAddDTO;
+import com.chinapost.devp.generate.pojo.dto.CodeTemplateUpdateDTO;
+import com.chinapost.devp.generate.pojo.mapper.CodeTemplateMapper;
+import com.chinapost.devp.generate.pojo.po.CodeTemplatePO;
+import com.chinapost.devp.generate.pojo.qo.CodeTemplateQO;
+import com.chinapost.devp.generate.pojo.qo.TemplateFileQO;
+import com.chinapost.devp.generate.pojo.vo.*;
+import com.chinapost.devp.generate.service.*;
+import com.chinapost.devp.generate.util.FileNodeUtil;
+import com.chinapost.devp.generate.web.AbstractController;
+import com.chinapost.devp.generate.web.api.CodeTemplateAPI;
+import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.io.File;
+import java.net.URI;
+import java.util.List;
+
+/**
+ * 【代码模板】控制器
+ *
+ * @author: cpit
+ * @date: 2020/10/24
+ */
+@RestController
+@RequestMapping(WebConst.API_PATH + "/code_template")
+public class CodeTemplateController extends AbstractController implements CodeTemplateAPI {
+
+    @Autowired
+    private CodeTemplateService codeTemplateService;
+    @Autowired
+    private TemplateFileService templateFileService;
+    @Autowired
+    private DataDirService dataDirService;
+    @Autowired
+    private TemplateImportExportService templateImportExportService;
+    @Autowired
+    private CodeTemplateAssembleAndCopyService codeTemplateAssembleAndCopyService;
+
+    @Override
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<CodeTemplateShowVO> save(@Valid @RequestBody CodeTemplateAddDTO codeTemplateAddDTO) throws Exception {
+        CodeTemplatePO codeTemplate = codeTemplateService.save(codeTemplateAddDTO);
+        return ResponseEntity.created(new URI(apiPath + "/code_template/" + codeTemplate.getTemplateId()))
+            .body(CodeTemplateMapper.INSTANCE.toShowVO(codeTemplate));
+    }
+
+    @Override
+    @PutMapping
+    public ResponseEntity<CodeTemplateShowVO> update(@Valid @RequestBody CodeTemplateUpdateDTO codeTemplateUpdateDTO) {
+        CodeTemplatePO codeTemplate = codeTemplateService.update(codeTemplateUpdateDTO);
+        return ResponseEntity.ok(CodeTemplateMapper.INSTANCE.toShowVO(codeTemplate));
+    }
+
+    @Override
+    @GetMapping
+    public ResponseEntity<List<CodeTemplateListVO>> list(@Valid CodeTemplateQO codeTemplateQO) {
+        List<CodeTemplateListVO> page = codeTemplateService.list(codeTemplateQO);
+        return ResponseEntity.ok(page);
+    }
+
+    @Override
+    @GetMapping(value = "/{templateId}")
+    public ResponseEntity<CodeTemplateShowVO> show(@PathVariable Integer templateId) {
+        CodeTemplateShowVO codeTemplateShowVO = codeTemplateService.show(templateId);
+        return ResponseEntity.ok(codeTemplateShowVO);
+    }
+
+    @Override
+    @DeleteMapping(value = "/{templateId}")
+    public ResponseEntity<Integer> delete(@PathVariable Integer templateId) {
+        int count = codeTemplateService.delete(templateId);
+        return ResponseEntity.ok(count);
+    }
+
+    @Override
+    @DeleteMapping
+    public ResponseEntity<Integer> deleteBatch(@RequestBody Integer[] id) {
+        if (ArrayUtils.isEmpty(id)) {
+            throw new BusinessException(ErrorCode.PARAM_IS_NULL);
+        }
+        int count = codeTemplateService.delete(id);
+        return ResponseEntity.ok(count);
+    }
+
+    @Override
+    @GetMapping(value = "/{templateId}/dir_tree")
+    public ResponseEntity<TemplateDirTreeVO> dirTree(@PathVariable Integer templateId) {
+        TemplateFileQO templateFileQO = new TemplateFileQO();
+        templateFileQO.setTemplateId(templateId);
+        templateFileQO.setFileDirSortSign(1);
+        List<TemplateFileListVO> list = templateFileService.list(templateFileQO);
+        List<FileNodeVO> tree = FileNodeUtil.templateFileListToNodeTree(list);
+        FileNodeUtil.treeSort(tree);
+        TemplateDirTreeVO treeVO = new TemplateDirTreeVO();
+        treeVO.setTemplateId(templateId);
+        treeVO.setTree(tree);
+        return ResponseEntity.ok(treeVO);
+    }
+
+    @Override
+    @GetMapping(value = "/{templateId}/export")
+    public void export(@PathVariable Integer templateId, HttpServletResponse response) {
+        File zipFile = templateImportExportService.exportTemplate(templateId);
+        if (zipFile == null || !zipFile.exists()) {
+            this.replyNotFound(response);
+        } else {
+            CodeTemplatePO codeTemplate = codeTemplateService.getCodeTemplate(templateId, true);
+            String downloadFileName = codeTemplate.getName() + "-"
+                + codeTemplate.getTemplateVersion() + ".zip";
+            this.replyDownloadFile(response, zipFile, downloadFileName);
+        }
+    }
+
+    @Override
+    @PostMapping(value = "/{templateId}/copy")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<CodeTemplateShowVO> copy(@PathVariable Integer templateId) throws Exception {
+        CodeTemplatePO codeTemplate = codeTemplateAssembleAndCopyService.copyCodeTemplate(templateId);
+        return ResponseEntity.created(new URI(apiPath + "/code_template/" + codeTemplate.getTemplateId()))
+            .body(CodeTemplateMapper.INSTANCE.toShowVO(codeTemplate));
+    }
+
+    @Override
+    @PostMapping(value = "/import")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<CodeTemplateShowVO> importTemplate(@RequestParam(value = "file") MultipartFile file) throws Exception {
+        String importFilePath = dataDirService.getTemplateImportFilePath();
+        File zipFile = new File(importFilePath);
+        File parentFile = zipFile.getParentFile();
+        if (!parentFile.exists()) {
+            parentFile.mkdirs();
+        }
+        file.transferTo(zipFile);
+        CodeTemplatePO codeTemplate = templateImportExportService.importTemplate(zipFile);
+        return ResponseEntity.created(new URI(apiPath + "/code_template/" + codeTemplate.getTemplateId()))
+            .body(CodeTemplateMapper.INSTANCE.toShowVO(codeTemplate));
+    }
+
+}
+
+

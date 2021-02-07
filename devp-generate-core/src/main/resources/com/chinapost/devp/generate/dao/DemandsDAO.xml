@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinapost.devp.generate.dao.DemandsDAO">
+
+
+    <sql id="demandsColumns">
+        ${alias}.id
+    </sql>
+
+
+    <select id="findById" resultType="DemandsPO">
+        select
+            <include refid="demandsColumns"><property name="alias" value="t"/></include>
+        from demands t
+        <where>
+            and t.id = #{arg0}
+        </where>
+        limit 1
+    </select>
+
+    <select id="exist" resultType="boolean">
+        select count(1) from demands
+        <where>
+            and id = #{arg0}
+        </where>
+    </select>
+
+    <insert id="_save" useGeneratedKeys="true" keyProperty="id" parameterType="DemandsPO">
+        insert into demands(
+        id
+        ) VALUES (
+        #{id,jdbcType=BIGINT}
+        )
+    </insert>
+
+
+    <update id="_update" parameterType="DemandsPO">
+        update demands set
+        where id=#{id,jdbcType=BIGINT}
+    </update>
+
+    <delete id="delete">
+        delete from demands
+        where id=#{arg0,jdbcType=BIGINT}
+    </delete>
+
+
+    <sql id="queryCondition">
+    </sql>
+
+    <sql id="orderCondition">
+        order by
+            t.id desc
+    </sql>
+
+    <select id="findCountByQuery" parameterType="DemandsQO" resultType="int">
+        select count(1) from demands t
+        <where>
+        <include refid="queryCondition"/>
+        </where>
+    </select>
+
+    <select id="findListByQuery" parameterType="DemandsQO" resultType="DemandsListVO">
+        select
+            <include refid="demandsColumns"><property name="alias" value="t"/></include>
+        from demands t
+        <where>
+        <include refid="queryCondition"/>
+        </where>
+        <include refid="orderCondition"/>
+        limit #{startIndex},#{pageSize}
+    </select>
+
+
+
+    <!-- 以上是自动生成的代码，尽量不要手动修改，新的sql请写在本行注释以下区域 -->
+
+
+</mapper>

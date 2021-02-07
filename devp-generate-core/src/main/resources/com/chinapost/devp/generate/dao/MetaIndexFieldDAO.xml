@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chinapost.devp.generate.dao.MetaIndexFieldDAO">
+
+    <insert id="saveBatch">
+        insert into meta_index_field (
+            index_id,
+            project_id,
+            field_id,
+            order_no)
+        values
+        <foreach collection="fieldIdList" index="index" item="fieldId" separator=",">
+            (#{indexId},#{projectId},#{fieldId},#{index})
+        </foreach>
+    </insert>
+
+    <delete id="delete">
+        delete from meta_index_field
+        where index_id = #{indexId,jdbcType=INTEGER}
+    </delete>
+
+    <delete id="remove">
+        delete from meta_index_field
+        where index_id = #{indexId,jdbcType=INTEGER}
+        and field_id in
+        <foreach collection="fieldIdList" open="(" close=")" item="fieldId" separator=",">
+            #{fieldId}
+        </foreach>
+    </delete>
+
+    <select id="findByIndexId"  parameterType="java.lang.Integer"  resultType="MetaFieldListVO">
+        select t.*
+        from meta_field t
+            inner join meta_index_field r on t.field_id=r.field_id
+        where  t.deleted=0
+            and r.index_id = #{arg0,jdbcType=INTEGER}
+        order by r.order_no
+    </select>
+
+    <select id="findIdsByIndexId" resultType="java.lang.Integer">
+        select t.field_id
+        from meta_field t
+            inner join meta_index_field r on t.field_id=r.field_id
+        where  t.deleted=0
+               and r.index_id = #{arg0,jdbcType=INTEGER}
+        order by r.order_no
+    </select>
+</mapper>
